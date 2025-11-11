@@ -44,6 +44,13 @@ CREATE TABLE IF NOT EXISTS poster_info (
     text_content TEXT
 );
 
+CREATE TABLE IF NOT EXISTS poster_text (
+    id SERIAL PRIMARY KEY,
+    poster_id INTEGER REFERENCES poster_info(id) ON DELETE CASCADE,
+    raw_text TEXT,
+    cleaned_text TEXT
+);
+
 CREATE TABLE IF NOT EXISTS poster_figure (
     id SERIAL PRIMARY KEY,
     poster_id INTEGER REFERENCES poster_info(id) ON DELETE CASCADE,
@@ -143,14 +150,34 @@ def html_table_to_markdown(html):
     return "\n".join([header_line, separator] + data_lines)
 
 
+def clean_text(text):
+    """Basic cleaning of extracted OCR text (remove noise and spacing artifacts)."""
+    text = re.sub(r'<[^>]+>', '', text)              # remove remaining HTML tags
+    text = re.sub(r'\s+', ' ', text)                 # collapse whitespace
+    text = re.sub(r'\|+', ' ', text)                 # remove table pipes
+    text = re.sub(r'(?:\+|=|-){5,}', '', text)       # remove long lines
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
+
 
 def parse_markdown(md_text):
-    """Extract clean text, image URLs, and tables."""
-    text = clean_html_tags(md_text)
+    """Extract pure text (no <img> or <table>), figures, and tables separately."""
+    # Remove <img> and collect figure URLs
     figures = re.findall(r'<img[^>]+src="([^"]+)"', md_text)
-    tables_html = re.findall(r'<table[\s\S]*?</table>', md_text)
+    md_text_noimg = re.sub(r'<img[^>]*>', '', md_text)
+
+    # Remove <table> but keep them separately
+    tables_html = re.findall(r'<table[\s\S]*?</table>', md_text_noimg)
+    md_text_notable = re.sub(r'<table[\s\S]*?</table>', '', md_text_noimg)
     tables = [html_table_to_markdown(t) for t in tables_html]
-    return text.strip(), figures, tables
+
+    # Raw text before cleanup
+    raw_text = clean_html_tags(md_text_notable)
+
+    # Cleaned text
+    cleaned_text = clean_text(raw_text)
+
+    return raw_text.strip(), cleaned_text.strip(), figures, tables
 
 
 # Step 3: Database Insertion
@@ -164,6 +191,14 @@ def insert_poster(cur, title, authors, source_url, page_url, text):
     row = cur.fetchone()
     return row[0] if row else None
 
+
+def insert_poster_text(cur, poster_id, raw_text, cleaned_text):
+    cur.execute("""
+        INSERT INTO poster_text (poster_id, raw_text, cleaned_text)
+        VALUES (%s, %s, %s);
+    """, (poster_id, raw_text, cleaned_text))
+
+
 # Main Pipeline
 
 def main():
@@ -173,6 +208,7 @@ def main():
     print("Resetting database...")
     cur.execute("DROP TABLE IF EXISTS poster_figure CASCADE;")
     cur.execute("DROP TABLE IF EXISTS poster_table CASCADE;")
+    cur.execute("DROP TABLE IF EXISTS poster_text CASCADE;")
     cur.execute("DROP TABLE IF EXISTS poster_info CASCADE;")
     cur.execute(CREATE_TABLES_SQL)
     conn.commit()
@@ -224,11 +260,12 @@ def main():
             conn.rollback()
             continue
 
-        text_content, figures, tables = parse_markdown(md_text)
+        raw_text, cleaned_text, figures, tables = parse_markdown(md_text)
 
         try:
-            poster_id = insert_poster(cur, title, authors, source_url, page_url, text_content)
+            poster_id = insert_poster(cur, title, authors, source_url, page_url, cleaned_text)
             if poster_id:
+                insert_poster_text(cur, poster_id, raw_text, cleaned_text)
                 for fig in figures:
                     cur.execute("INSERT INTO poster_figure (poster_id, figure_url) VALUES (%s, %s)", (poster_id, fig))
                 for tb in tables:
