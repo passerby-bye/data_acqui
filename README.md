@@ -13,7 +13,7 @@ This project implements a data pipeline to scrape metadata from ICLR and ICML vi
   - [3. Database Setup](#3-database-setup)
 - [Usage Instructions](#usage-instructions)
   - [Step 1: Data Crawling (Extract)](#step-1-data-crawling-extract)
-  - [Step 2: AI Data Preparation](#step-2-ai-data-preparation)
+  - [Step 2: Data Preparation](#step-2-data-preparation)
   - [Step 3: Data Ingestion (Load)](#step-3-data-ingestion-load)
 - [Verification](#verification)
 
@@ -102,6 +102,7 @@ python merge_json.py
 This step assumes that PDF posters have already been processed by AI to generate `result.json`, `result.md`, and cropped images.
 We tried many methods, and after considering both effectiveness and cost, we finally chose [PaddlePaddleOCR](https://huggingface.co/PaddlePaddle/PaddleOCR-VL).
 Processing a single poster may take 40-60 seconds, and the images may be split into Markdown and JSON formats. The `imgs` folder stores the segmented images recognized from the poster.
+
 ```bash
 # The following command installs the PaddlePaddle version for CUDA 12.6. For other CUDA versions and the CPU version, please refer to https://www.paddlepaddle.org.cn/en/install/quick?docurl=/documentation/docs/en/develop/install/pip/linux-pip_en.html
 python -m pip install paddlepaddle-gpu==3.2.1 -i https://www.paddlepaddle.org.cn/packages/stable/cu126/
