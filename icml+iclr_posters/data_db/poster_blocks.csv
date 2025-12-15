@@ -1,0 +1,102 @@
+poster_id,block_label,block_bbox,block_content
+1,header_image,"[150, 59, 365, 274]",""
+1,doc_title,"[529, 88, 3227, 184]",HelpSteer2-Preference: Complementing Ratings with Preferences
+1,header,"[929, 198, 2933, 296]","Zhilin Wang, Alexander Bukharin, Olivier Delalleau, Daniel Egert, Gerald Shen, Jiaqi Zeng, Oleksii Kuchaiev, Yi Dong {zhilinw, yidong}@nvidia.com"
+1,header_image,"[3341, 61, 3929, 178]",""
+1,paragraph_title,"[585, 348, 1366, 400]",Why do we need HelpSteer2-Preference?
+1,text,"[137, 448, 1094, 489]",It's unclear what the best approach for Reward Modelling is
+1,text,"[176, 490, 1369, 529]","Bradley-Terry models: OpenAI InstructGPT, Anthropic HH-RLHF, Meta Llama 3"
+1,text,"[181, 530, 1231, 572]","○ Regression models: Nemotron 4 340B Reward, RLHFlow ArmoRM 8B"
+1,text,"[137, 572, 1027, 609]",• We need matched data for both approaches to find out
+1,text,"[180, 612, 828, 652]",○ Identical set of prompts and responses
+1,text,"[179, 652, 1432, 693]",○ Collected for Purpose: Retrofitting Regression data for preference is not sufficient
+1,text,"[180, 694, 1434, 735]",o High Quality: Garbage in; Garbage out – need to ensure high signal to noise ratio
+1,text,"[138, 736, 893, 775]",Open-source dataset to support open science
+1,text,"[175, 773, 1514, 817]",○ Data Gap: There’s currently no open-source dataset that fulfills all of the criteria above
+1,text,"[91, 827, 1825, 875]","The community needs a high-quality, matched and open-source Preference data to accompany Regression data"
+1,figure_title,"[111, 1019, 1689, 1114]",Regression and Bradley-Terry perform similarly but can complement each other to reach No. 1 on Reward Bench with Overall 94.1 (on 1 Oct 2024).
+1,table,"[112, 1139, 1837, 1765]","<table><tr><td rowspan=""2"">Model Type</td><td rowspan=""2"">Model</td><td rowspan=""2"">Overall</td><td rowspan=""2"">Chat</td><td colspan=""2"">RewardBench</td><td rowspan=""2"">Reasoning</td></tr><tr><td>Chat-Hard</td><td>Safety</td></tr><tr><td rowspan=""2"">SteerLM Regression</td><td>HelpSteer Attributes</td><td>92.4</td><td>95.0</td><td>85.5</td><td>94.0</td><td>95.1</td></tr><tr><td>Helpfulness Only</td><td>93.0</td><td>97.2</td><td>84.2</td><td>94.6</td><td>95.8</td></tr><tr><td rowspan=""3"">Bradley-Terry (from scratch)</td><td>Regular</td><td>91.5</td><td>97.5</td><td>80.3</td><td>90.5</td><td>97.9</td></tr><tr><td>Margin</td><td>91.5</td><td>98.0</td><td>78.5</td><td>94.6</td><td>94.8</td></tr><tr><td>Scaled</td><td>92.7</td><td>97.8</td><td>83.5</td><td>93.2</td><td>96.0</td></tr><tr><td rowspan=""4"">Bradley-Terry (init. with Helpfulness-only Regression Model)</td><td>Regular</td><td>92.7</td><td>98.9</td><td>82.9</td><td>93.7</td><td>95.4</td></tr><tr><td>Margin</td><td>93.0</td><td>98.3</td><td>83.8</td><td>94.0</td><td>95.8</td></tr><tr><td>Scaled</td><td>93.7</td><td>98.0</td><td>85.7</td><td>94.3</td><td>96.7</td></tr><tr><td>Scaled + ExPO</td><td>94.1</td><td>97.5</td><td>85.7</td><td>95.1</td><td>98.1</td></tr><tr><td rowspan=""2"">External Baselines</td><td>Skywork-Reward-Gemma-2-27B</td><td>93.8</td><td>95.8</td><td>91.4</td><td>91.9</td><td>96.1</td></tr><tr><td>TextEval-Llama3.1-70B</td><td>93.5</td><td>94.1</td><td>90.1</td><td>93.2</td><td>96.4</td></tr></table>"
+1,paragraph_title,"[726, 948, 1227, 1001]",Reward Modelling Results
+1,figure_title,"[772, 1914, 1190, 1969]",Scaled Bradley-Terry
+1,vision_footnote,"[113, 1792, 1665, 1877]",Optimal form of Bradley-Terry is Scaled Bradley-Terry which uses preference strength to scale loss proportionally
+1,display_formula,"[102, 2027, 1128, 2111]"," $$ \mathcal{L}_{\mathcal{B T}}=-\log\left(\sigma(r_{\theta}(x,y_{c})-r_{\theta}(x,y_{r}))\right) $$ "
+1,text,"[1479, 2023, 1876, 2107]",Regular BT [1]
+1,display_formula,"[102, 2148, 1252, 2232]"," $$ \mathcal{L}_{\mathcal{M}\mathcal{B}\mathcal{T}}=-\log\left(\sigma(r_{\theta}(x,y_{c})-r_{\theta}(x,y_{r})-m)\right) $$ "
+1,text,"[1478, 2149, 1876, 2233]",Margin BT [2]
+1,display_formula,"[100, 2270, 1183, 2351]"," $$ \mathcal{L}_{\mathcal{S}\mathcal{B}\mathcal{T}}=-m\log\left(\sigma(r_{\theta}(x,y_{c})-r_{\theta}(x,y_{r}))\right) $$ "
+1,text,"[1390, 2259, 1872, 2338]",Scaled BT (ours)
+1,paragraph_title,"[2612, 344, 3258, 396]",HelpSteer2-Preference: Overview
+1,text,"[105, 2383, 1870, 2526]","reward ( $ r_{\theta} $ ) for the chosen response ( $ y_{c} $ ) and the rejected response ( $ y_{r} $ ) with the same prompt (x) magnitude (m) of this preference (1 - slightly better, 2 - better, 3 - much better)"
+1,text,"[103, 2556, 1816, 2761]","Perspective 1 – Data Utilization: Repeated sampling of response pairs with higher preference magnitude
+Perspective 2 – Model Training: Larger gradient updates from response pairs with greater preference strength
+Difference from Margin BT: Does not assume that the chosen and rejected reward difference >= margin term
+HelpSteer2-Preference is an open-source, CC-BY-4.0 licensed, and rich dataset for top-performing and efficient reward modelling."
+1,text,"[2030, 421, 3747, 510]",""
+1,text,"[2076, 536, 3795, 620]","- Top-performing: Used for Llama-3.1-Nemotron-70B-Reward, No. 1 on Reward Bench (94.1) at time of release (Oct 2024)."
+1,text,"[2077, 647, 3769, 733]","- Complementary to Ratings: Prompts and responses are identical with HelpSteer2 (which contains Likert-5 ratings of Helpfulness and other attributes), permitting fair comparison."
+1,text,"[2078, 757, 3765, 843]","- Rich data: Each of 10k samples contains preference between two responses, preference strengths (slightly better, better and much better) and human-written preference justifications."
+1,text,"[2032, 867, 3643, 917]",https://huggingface.co/datasets/nvidia/HelpSteer2#preferences-new---1-oct-2024 >300k downloads
+1,figure_title,"[2699, 947, 3186, 999]",Model Alignment Results
+3,paragraph_title,"[48, 764, 588, 832]",Problem Statement
+1,figure_title,"[2039, 1034, 3462, 1128]","Trained Reward Model can be used with REINFORCE algorithm during RLHF to produce top-performing model on MT-Bench, AlpacaEval 2 LC and Arena Hard"
+1,table,"[2049, 1138, 3808, 1679]","<table><tr><td rowspan=""2"">Model Type</td><td rowspan=""2"">Model</td><td colspan=""4"">Aligned Metrics</td></tr><tr><td>MT Bench (GPT-4-Turbo)</td><td>Mean Response Length (Char.s.)</td><td>AlpacaEval 2.0 LC (SE)</td><td>Arena Hard (95% CI)</td></tr><tr><td rowspan=""3"">Offline RLHF</td><td>Regular DPO</td><td>8.66</td><td>1502.2</td><td>40.4 (1.66)</td><td>52.8 (-2.7, 2.7)</td></tr><tr><td>Margin DPO</td><td>8.58</td><td>1496.6</td><td>41.1 (1.67)</td><td>52.6 (-2.7, 2.8)</td></tr><tr><td>Scaled DPO</td><td>8.74</td><td>1514.8</td><td>41.0 (1.68)</td><td>52.9 (-2.4, 3.1)</td></tr><tr><td rowspan=""2"">Online RLHF</td><td>PPO</td><td>8.74</td><td>1842.8</td><td>43.8 (1.76)</td><td>58.6 (-2.9, 2.5)</td></tr><tr><td>REINFORCE</td><td>8.98</td><td>2199.8</td><td>57.6 (1.65)</td><td>85.0 (-1.5, 1.5)</td></tr><tr><td rowspan=""4"">External Baselines</td><td>Llama-3.1-70B-Instruct</td><td>8.22</td><td>1728.6</td><td>38.1 (0.90)</td><td>55.7 (-2.9, 2.7)</td></tr><tr><td>Llama-3.1-405B-Instruct</td><td>8.49</td><td>1664.7</td><td>39.3 (1.43)</td><td>69.3 (-2.4, 2.2)</td></tr><tr><td>Claude-3-5-Sonnet-20240620</td><td>8.81</td><td>1619.9</td><td>52.4 (1.47)</td><td>79.2 (-1.9, 1.7)</td></tr><tr><td>GPT-4o-2024-05-13</td><td>8.74</td><td>1752.2</td><td>57.5 (1.47)</td><td>79.3 (-2.1, 2.0)</td></tr></table>"
+1,text,"[2035, 1756, 3828, 1866]",Reward and REINFORCE models openly accessible (Llama 3.1 licensed) at https://huggingface.co/collections/nvidia/llama-31-nemotron-70b-670e93cd366feea16abc13d8
+1,paragraph_title,"[2577, 1918, 3293, 1968]",HelpSteer2-Preference Data Analysis
+1,chart,"[2167, 1984, 2967, 2778]",""
+1,text,"[3044, 2027, 3725, 2149]",- Preference and Helpfulness generally correlates: Larger helpfulness difference likely suggests stronger preference
+1,text,"[3044, 2176, 3759, 2328]",- Correlation not perfect: Some samples have responses with identical helpfulness but show preference for one response over the other
+1,text,"[3045, 2358, 3769, 2551]","- Position bias is weak: Humans show slight preference for latter response, possibly because of recency effect. Much lower than automated evals (e.g. GPT4/Claude in MT Bench [3])"
+1,paragraph_title,"[3300, 2575, 3610, 2624]",Reference Links
+1,vision_footnote,"[3073, 2649, 3601, 2767]","[1] https://arxiv.org/abs/2203.02155
+[2] https://arxiv.org/abs/2307.09288
+[3] https://arxiv.org/abs/2306.05685"
+2,header,"[41, 99, 1095, 330]",TL; DR: A comprehensive and multi-task benchmark of glycan property prediction from multiple representation structures
+2,paragraph_title,"[1233, 49, 2673, 216]",GlycanML: A Multi-Task and Multi-Structure Benchmark for Glycan Machine Learning
+2,text,"[1353, 265, 2552, 390]","Minghao Xu Yuteng Geng* Yihang Zhang* Ling Yang
+Jian Tang Wentao Zhang"
+2,header_image,"[2768, 56, 3184, 171]",""
+2,header_image,"[2731, 218, 3216, 379]",""
+2,paragraph_title,"[27, 449, 1388, 520]",Covering Diverse Types of Glycan Understanding Tasks
+2,image,"[108, 658, 904, 1003]",""
+2,image,"[918, 653, 1449, 1003]",""
+2,image,"[210, 1081, 830, 1450]",""
+2,image,"[929, 1077, 1451, 1391]",""
+2,image,"[155, 1506, 372, 1721]",""
+2,vision_footnote,"[203, 1736, 331, 1789]",Paper
+2,image,"[677, 1504, 895, 1721]",""
+2,vision_footnote,"[656, 1735, 920, 1790]",Project Page
+2,image,"[1198, 1509, 1414, 1725]",""
+2,vision_footnote,"[1249, 1735, 1365, 1782]",Code
+2,paragraph_title,"[1589, 452, 2999, 520]",Supporting Glycan Sequence and Graph Representations
+2,image,"[1568, 546, 3216, 902]",""
+2,paragraph_title,"[1593, 950, 3173, 1017]",Maintaining A Leaderboard of Glycan Machine Learning Models
+2,table,"[1689, 1071, 3112, 1779]","<table><tr><td>Rank</td><td>Method</td><td>Mean Rank</td><td>Ranks: Domain  $ \rightarrow $  Interaction</td><td>Reference</td></tr><tr><td>1</td><td>RGCN</td><td>2.5</td><td>[1, 5, 1, 1, 1, 1, 2, 2, 2, 2, 8, 3]</td><td>paper</td></tr><tr><td>2</td><td>CNN</td><td>3.5</td><td>[7, 6, 2, 2, 2, 2, 3, 5, 3, 2, 4]</td><td>paper</td></tr><tr><td>3</td><td>CompGCN</td><td>3.9</td><td>[5, 1, 3, 3, 4, 3, 1, 1, 7, 10, 5]</td><td>paper</td></tr><tr><td>4</td><td>GIN</td><td>5.1</td><td>[2, 3, 4, 4, 10, 5, 6, 6, 6, 4, 6]</td><td>paper</td></tr><tr><td>5</td><td>MPNN</td><td>5.6</td><td>[6, 7, 5, 5, 3, 4, 4, 4, 10, 3, 10]</td><td>paper</td></tr><tr><td>6</td><td>ResNet</td><td>6.0</td><td>[8, 8, 7, 6, 5, 8, 8, 9, 4, 1, 2]</td><td>paper</td></tr><tr><td>7</td><td>LSTM</td><td>6.3</td><td>[9, 9, 6, 7, 6, 6, 9, 10, 1, 5, 1]</td><td>paper</td></tr><tr><td>8</td><td>GAT</td><td>6.6</td><td>[4, 2, 8, 9, 7, 7, 5, 3, 9, 9, 9]</td><td>paper</td></tr><tr><td>9</td><td>GCN</td><td>7.2</td><td>[3, 4, 10, 8, 8, 9, 7, 7, 8, 7, 8]</td><td>paper</td></tr><tr><td>10</td><td>Transformer</td><td>8.5</td><td>[10, 10, 9, 10, 9, 10, 10, 8, 5, 6, 7]</td><td>paper</td></tr></table>"
+3,paragraph_title,"[38, 150, 2229, 300]",In-House Evaluation Is Not Enough:
+3,header_image,"[3221, 67, 4706, 272]",""
+3,paragraph_title,"[38, 329, 4215, 479]",Towards Robust Third-Party Flaw Disclosure for General-Purpose AI
+3,text,"[90, 558, 4700, 661]","Shayne Longpre*, Kevin Klyman*, Ruth E Appel*, Sayash Kapoor, Rishi Bommasani, Michelle Sahar, Sean McGregor, Avijit Ghosh, Borhane Bili-Hamelin, Nathan Butters, Alondra Nelson, Amit Elazari, Andrew Sellars, Casey John Ellis, Dane Sherrets, Dawn Song, Harley Geiger, Ilona Cohen, Lauren McIlvenny, Madhulika Srikumar, Mark M Jaycox, Markus Anderljung, Nadine Farid Johnson, Nicholas Carlini, Nicolas Mialhe, Nik Marda, Peter Henderson, Rebecca S Portnoff, Rebecca Weiss, Victoria Westerhoff, Yacine Jernite, Rumman Chowdhury, Percy Liang, Arvind Narayanan"
+3,text,"[42, 873, 1178, 1022]","AI systems, agents, and their applications have many risks. However, there are obstacles to mitigation:"
+3,text,"[44, 1133, 851, 1193]",1. An absence of flaw reporting culture
+3,text,"[44, 1219, 1118, 1280]",2. Limited disclosure infrastructure (eg bug bounties)
+3,text,"[44, 1306, 1030, 1368]",3. No legal protections for third-party evaluators
+3,paragraph_title,"[48, 1483, 566, 1549]",Recommendations
+3,text,"[43, 1590, 1279, 1743]",We recommend the AI community adopt 3 conventions from the software security community:
+3,text,"[47, 1851, 892, 1910]",1. Evaluators should submit flaw reports
+3,text,"[44, 1939, 1251, 2086]","2. AI developers should adopt flaw disclosure programs, to coordinate universally transferable flaws"
+3,text,"[44, 2111, 1257, 2172]",3. AI developers should protect evaluators with safe harbors
+3,paragraph_title,"[46, 2287, 355, 2359]",Next Steps
+3,text,"[47, 2396, 941, 2457]","We are building out a flaw report form, that is:"
+3,text,"[48, 2483, 729, 2539]","A. Fast, and convenient to fill-out"
+3,text,"[48, 2569, 1214, 2717]","B. Collects information that makes it easy for developers to validate, triage, and reproduce reported flaws"
+3,image,"[1416, 752, 3377, 1052]",""
+3,figure_title,"[2118, 1076, 2683, 1125]",Coordinated Flaw Disclosure
+3,image,"[1423, 1098, 1903, 2195]",""
+3,image,"[1874, 1099, 3373, 2191]",""
+3,image,"[1836, 2293, 2222, 2679]",""
+3,image,"[2685, 2288, 3081, 2682]",""
+3,vision_footnote,"[2733, 2750, 3033, 2820]",Paper Link
+3,paragraph_title,"[3429, 753, 4149, 826]",Schema for a Flaw Report
+3,table,"[3574, 933, 4584, 2101]","<table><tr><td>Report Type</td><td>Field Name</td><td>Field Description</td></tr><tr><td rowspan=""18"">Collected for All Flaw Reports</td><td>Reporter ID</td><td>Anonymous or real identity of flaw reporter</td></tr><tr><td>Report ID</td><td>Unique flaw report ID. The flaw report ID can be referenced in future submissions or mitigation efforts, similar to vulnerability identifiers such as CVE identifiers in computer security (Cybersecurity and Infrastructure Security Agency, 2022).</td></tr><tr><td>System Version(s)</td><td>AI system(s) and version(s) involved; multiple systems can be selected</td></tr><tr><td>Report Status</td><td>Current status of the report, recorded with timestamps as updated by the submitter or receiving company. Initially, the status of a report is “Submitted”, but once it is submitted the status field will be updated to reflect current status of addressing the flaw (e.g., “Under investigation” or “Fixed”) (Cybersecurity and Infrastructure Security Agency, 2022).</td></tr><tr><td>Session ID</td><td>System session ID(s) for tracing flaw environment</td></tr><tr><td>Report Timestamp</td><td>Report submission timestamp</td></tr><tr><td>Flaw Timestamp(s)</td><td>Time(s) where flaws occurred</td></tr><tr><td>Context Info</td><td>Versions of other software or hardware systems involved</td></tr><tr><td>Flaw Description</td><td>Description of the flaw, its identification, reproduction, and how it violates system policies or user expectations</td></tr><tr><td>Policy Violation</td><td>Detail of how the expectations of the system are violated or undocumented, pointing to the terms of use, acceptable use policy, system card, or other documentation. Policies may be explicitly or implicitly violated.</td></tr><tr><td>Developer</td><td>Triage tag with name of system developer</td></tr><tr><td>System</td><td>Triage tag with name and version of system</td></tr><tr><td>Severity</td><td>Triage tag with worst-case scenario estimate of how negatively stakeholders will be impacted</td></tr><tr><td>Prevalence</td><td>Triage tag with rough estimate of how often the flaw might be expressed across system deployments</td></tr><tr><td>Impacts</td><td>Triage tag indicating how impacted stakeholders may suffer if the flaw is not addressed</td></tr><tr><td>Impacted Stakeholder(s)</td><td>Triage tag(s) indicating who may be harmed if the flaw is not addressed</td></tr><tr><td>Risk Source</td><td>Triage tag indicating worst-case scenario estimate of how negatively stakeholders will be impacted</td></tr><tr><td>Bounty Eligibility</td><td>Triage tag indicating whether the submitter believes the flaw report meets the criteria for bounty programs</td></tr><tr><td rowspan=""8"">Collected for Real-World Events</td><td>Description of the Incident(s)</td><td>Details on specific real-world event(s) that have occurred</td></tr><tr><td>Implicated Systems</td><td>Systems involved in real-world event(s) which generalized flaw reports might cover</td></tr><tr><td>Submitter Relationship</td><td>How the submitter is related to the event (e.g., “affected stakeholder” or “independent observer”)</td></tr><tr><td>Event Date(s)</td><td>Date when the incident(s) occurred</td></tr><tr><td>Event Location(s)</td><td>Geographical location of the incident(s)</td></tr><tr><td>Experienced Harm Types</td><td>Physical; psychological; reputational; economic/property; environmental; public interest/critical infrastructure; fundamental rights; other</td></tr><tr><td>Experienced Harm Severity</td><td>Maximum severity of harm experienced in the real world</td></tr><tr><td>Harm Narrative</td><td>Justification of why the event constitutes harm and how system flaws contributed to it</td></tr><tr><td rowspan=""2"">Malign Actor</td><td rowspan=""2"">Tactic Select Impact</td><td>Tactics observed or used (e.g., from MITRE&#x27;s ATLAS Matrix)</td></tr><tr><td>Confidentiality/privacy, integrity, availability, abuse</td></tr><tr><td>Security Incident Report</td><td>Threat Actor Intent Detection</td><td>Deliberate, unintentional, unknown</td></tr><tr><td>Vulnerability Report</td><td>Proof-of-Concept Exploit</td><td>How the reporter knows about the security incident, including observation methods</td></tr><tr><td rowspan=""4"">Hazard Report</td><td>Examples</td><td>A code and documentation archive proving the existence of a vulnerability</td></tr><tr><td>Replication Packet</td><td>A list of system inputs/outputs to help understand the replication packet</td></tr><tr><td rowspan=""2"">Statistical Argument</td><td>Files evidencing the flaw statistically, including test data, custom evaluators, and structured datasets</td></tr><tr><td>Argument supporting sufficient evidence of a flaw</td></tr></table>"
+3,text,"[3501, 2243, 4702, 2564]","AI flaw reports are complex to design. The relevant information is contingent on many conditions, such as whether the flaw has caused harm (and become an “incident”), or whether there is a malicious threat actor."
+3,footer,"[52, 2742, 792, 2800]",We would love to get feedback on it!
+3,footer,"[1679, 2750, 2373, 2819]",Try out the AI Flaw Report
