@@ -162,6 +162,14 @@ psql -d posters -U YOUR_DB_USERNAME
 SELECT poster_id, title, local_path_md FROM poster_info;
 ```
 
+## Database Schema (ER Diagram)
+
+The following ER diagram illustrates how the four tables interact inside the PostgreSQL database:
+
+<p align="center">
+  <img src="static/Poster_Database_ER.png" width="550">
+</p>
+
 ## Interactive Visualization Interface
 
 From the project root directory, run:
@@ -182,3 +190,9 @@ Open any browser and navigate to:
 **http://127.0.0.1:8000**
 
 You should now see the full Poster Explorer interface.
+
+### Poster Explorer Interface (Preview)
+
+<p align="center">
+  <img src="static/screenshot.png" width="750">
+</p>
