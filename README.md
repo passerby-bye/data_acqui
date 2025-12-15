@@ -86,7 +86,7 @@ scrapy crawl icml_posters -o icml_posters.json -t json
 ```
 
 3. **Merge JSON Files**
-4. 
+
 Run to combine the two output files into a single, unified file needed by the ingestion script.
 
 ```bash
