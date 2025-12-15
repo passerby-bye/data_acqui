@@ -42,7 +42,7 @@ The project follows a three-stage ETL (Extract, Transform, Load) process:
 Navigate to the project root directory and install the required libraries:
 
 ```bash
-pip install scrapy psycopg2-binary
+pip install scrapy psycopg2-binary "fastapi[standard]" paddleocr
 ````
 
 ### 3. Database Setup
@@ -161,3 +161,25 @@ psql -d posters -U YOUR_DB_USERNAME
 ```sql
 SELECT poster_id, title, local_path_md FROM poster_info;
 ```
+
+### Interactive Visualization Interface
+
+From the project root directory, run:
+
+```bash
+python poster_api.py
+```
+
+If everything is configured correctly, the terminal will output something like:
+
+```bash
+INFO:     Uvicorn running on http://127.0.0.1:8000 ...
+```
+
+### Access the Frontend in Your Browser
+Open any browser and navigate to:
+```bash
+http://127.0.0.1:8000
+```
+
+You should now see the full Poster Explorer interface.
