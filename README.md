@@ -48,7 +48,6 @@ pip install scrapy psycopg2-binary
 ### 3. Database Setup
 
 Ensure your PostgreSQL server is running (e.g., started via Postgres.app).
-
 **Create the Database:**
 ```sql
 CREATE DATABASE posters;
