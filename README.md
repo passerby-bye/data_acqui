@@ -98,7 +98,7 @@ python merge_json.py
 
 ### Step 2: AI Data Preparation
 
-This step assumes that PDF posters have already been processed by AI to generate result.json, result.md, and cropped images.
+This step assumes that PDF posters have already been processed by AI to generate `result.json`, `result.md`, and cropped images.
 
 Ensure `processed_data` exists with AI-parsed results:
 
