@@ -162,7 +162,7 @@ psql -d posters -U YOUR_DB_USERNAME
 SELECT poster_id, title, local_path_md FROM poster_info;
 ```
 
-### Interactive Visualization Interface
+## Interactive Visualization Interface
 
 From the project root directory, run:
 
