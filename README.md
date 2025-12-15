@@ -61,7 +61,7 @@ Open `ingest_poster_data_to_db.py` and update `DB_CONFIG`:
 ```python
 DB_CONFIG = {
     "dbname": "posters",
-    "user": "YOUR_MAC_USERNAME", # MUST be your system username
+    "user": "YOUR_DB_USERNAME", # MUST be your system username
     "password": "", # Enter your PostgreSQL password if you have set one
     "host": "localhost",
     "port": "5432"
