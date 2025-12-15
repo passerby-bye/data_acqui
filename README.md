@@ -97,7 +97,7 @@ python merge_json.py
 
 ---
 
-### Step 2: AI Data Preparation
+### Step 2: Data Preparation
 
 This step assumes that PDF posters have already been processed by AI to generate `result.json`, `result.md`, and cropped images.
 We tried many methods, and after considering both effectiveness and cost, we finally chose [PaddlePaddleOCR](https://huggingface.co/PaddlePaddle/PaddleOCR-VL).
