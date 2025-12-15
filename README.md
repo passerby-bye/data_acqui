@@ -55,6 +55,7 @@ CREATE DATABASE posters;
 ```
 
 **Update Configuration:**
+
 Open `ingest_poster_data_to_db.py` and update `DB_CONFIG`:
 
 ```python
@@ -86,7 +87,9 @@ scrapy crawl icml_posters -o icml_posters.json -t json
 ```
 
 3. **Merge JSON Files**
+4. 
 Run to combine the two output files into a single, unified file needed by the ingestion script.
+
 ```bash
 python merge_json.py
 ```
@@ -117,7 +120,9 @@ Ensure `processed_data` exists with AI-parsed results:
 ---
 
 ### Step 3: Data Ingestion (Load)
+
 Run the main script to initialize the database tables and ingest all structured data.
+
 ```bash
 python ingest_poster_data_to_db.py
 ```
@@ -125,6 +130,7 @@ python ingest_poster_data_to_db.py
 ---
 
 ## Verification
+
 Upon successful execution, the script will print `3. All Posters Processed`. You can verify the data using the `psql` command-line tool.
 
 1. Connect to PostgreSQL:
