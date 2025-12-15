@@ -4,7 +4,7 @@ This project implements a data pipeline to scrape metadata from ICLR and ICML vi
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 
 - [Pipeline Overview](#pipeline-overview)
 - [Prerequisites](#prerequisites)
