@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Poster Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 16px 24px;
+      background: linear-gradient(90deg, #0f172a, #111827, #1d2433);
+      border-bottom: 1px solid #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    header span {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 360px;
+      max-width: 100%;
+      border-right: 1px solid #1f2937;
+      padding: 16px 16px 24px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: radial-gradient(circle at top, rgba(55, 65, 81, 0.5), transparent 55%);
+    }
+    .content {
+      flex: 1;
+      padding: 16px 24px 24px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+    .field-label {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    .input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background-color: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+    .input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.5);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #e5e7eb;
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.35);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+    }
+    .results-list {
+      margin-top: 8px;
+      overflow-y: auto;
+      flex: 1;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.6));
+    }
+    .result-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #1f2937;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .result-item:last-child {
+      border-bottom: none;
+    }
+    .result-item:hover {
+      background-color: rgba(31, 41, 55, 0.9);
+    }
+    .result-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+    }
+    .result-authors {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    .result-snippet {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background-color: rgba(37, 99, 235, 0.12);
+      color: #93c5fd;
+      font-size: 10px;
+      margin-left: 6px;
+    }
+    .detail-header {
+      margin-bottom: 12px;
+    }
+    .detail-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 4px;
+      color: #f9fafb;
+    }
+    .detail-authors {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+    .detail-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: #e5e7eb;
+      text-decoration: none;
+      margin-right: 10px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.4), rgba(15, 23, 42, 0.95));
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+    .detail-links a:hover {
+      border-color: #60a5fa;
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.5);
+    }
+    .detail-layout {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: minmax(0, 2.5fr) minmax(0, 3fr);
+    }
+    @media (max-width: 960px) {
+      main {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1f2937;
+      }
+      .detail-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .card {
+      background-color: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      padding: 12px 14px;
+      box-sizing: border-box;
+      font-size: 13px;
+      color: #d1d5db;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+    .pre-text {
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+    }
+    .chip {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background-color: rgba(15, 23, 42, 0.8);
+      color: #9ca3af;
+    }
+    .fig-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 12px;
+      max-height: 460px;
+      overflow-y: auto;
+    }
+    .fig-item {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #374151;
+      background-color: #020617;
+      font-size: 11px;
+      padding: 10px;
+      box-sizing: border-box;
+      word-break: break-all;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #1f2937;
+    }
+    .tab {
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      color: #9ca3af;
+    }
+    .tab.active {
+      color: #e5e7eb;
+      border-color: #374151;
+      background-color: #020617;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 12px;
+    }
+    .small {
+      font-size: 11px;
+    }
+    .table-wrapper {
+      max-height: 340px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .nice-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 12px;
+      background-color: #020617;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .nice-table thead {
+      background: linear-gradient(135deg, rgba(55, 65, 81, 0.9), rgba(15, 23, 42, 0.95));
+    }
+    .nice-table th,
+    .nice-table td {
+      border: 1px solid #1f2937;
+      padding: 6px 8px;
+    }
+    .nice-table th {
+      font-weight: 600;
+      color: #e5e7eb;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .nice-table td {
+      color: #d1d5db;
+    }
+    .nice-table tbody tr:nth-child(odd) {
+      background-color: rgba(15, 23, 42, 0.9);
+    }
+    .nice-table tbody tr:nth-child(even) {
+      background-color: rgba(15, 23, 42, 0.7);
+    }
+    .table-caption {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    .thumb-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 260px;
+    }
+    .thumb-wrapper {
+      max-width: 100%;
+      max-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .thumb-wrapper img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+    .thumb-caption {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Poster Explorer</h1>
+      <span>ICML / ICLR · PostgreSQL</span>
+    </div>
+    <div class="small muted" id="statusText">Idle</div>
+  </header>
+  <main>
+    <aside class="sidebar">
+      <div>
+        <div class="field-label">Keyword (title / author / text)</div>
+        <input id="qInput" class="input" placeholder="search in title, authors and text" />
+      </div>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:2px;">
+        <button class="btn" id="searchBtn">Search</button>
+        <span class="small muted" id="resultInfo"></span>
+      </div>
+      <div class="results-list" id="resultsList">
+        <div class="result-item">
+          <div class="result-title">Type a keyword and click Search</div>
+          <div class="result-snippet">Search in title and cleaned text_content stored in PostgreSQL.</div>
+        </div>
+      </div>
+    </aside>
+    <section class="content">
+      <div id="detailEmpty" class="muted">
+        Select a poster from the left to see details here.
+      </div>
+      <div id="detailPane" style="display:none;">
+        <div class="detail-header">
+          <h2 class="detail-title" id="detailTitle"></h2>
+          <div class="detail-authors" id="detailAuthors"></div>
+          <div class="detail-links" id="detailLinks"></div>
+        </div>
+        <div class="detail-layout">
+          <div class="card thumb-card">
+            <h3>Poster Preview</h3>
+            <div class="thumb-wrapper">
+              <img id="posterThumb" src="" alt="Poster preview" style="display:none;" />
+            </div>
+            <div class="thumb-caption small muted" id="posterThumbCaption">Click to view fullscreen</div>
+          </div>
+          <div class="card">
+            <div class="tabs">
+              <div class="tab active" data-tab="figures">Figures</div>
+              <div class="tab" data-tab="tables">Tables</div>
+              <div class="tab" data-tab="textblocks">Text Blocks</div>
+            </div>
+            <div id="tabFigures">
+              <div id="figuresContent" class="fig-grid muted small">
+                No figures.
+              </div>
+            </div>
+            <div id="tabTables" style="display:none;">
+              <div id="tablesContent" class="table-wrapper muted small">
+                No tables.
+              </div>
+            </div>
+            <div id="tabTextBlocks" style="display:none;">
+              <div id="textBlocksContent" class="pre-text muted small">
+                No text blocks.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <!-- Image lightbox -->
+  <div id="imgLightbox" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:50; align-items:center; justify-content:center;">
+    <div style="position:absolute; top:16px; right:20px; cursor:pointer; color:#e5e7eb; font-size:24px;" id="imgLightboxClose">&times;</div>
+    <img id="imgLightboxImg" src="" alt="" style="max-width:90vw; max-height:90vh; border-radius:10px; box-shadow:0 20px 45px rgba(0,0,0,0.8); border:1px solid #4b5563;" />
+  </div>
+  <script>
+    let currentKeyword = "";
+    const statusText = document.getElementById("statusText");
+    const qInput = document.getElementById("qInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const resultsList = document.getElementById("resultsList");
+    const resultInfo = document.getElementById("resultInfo");
+
+    const detailEmpty = document.getElementById("detailEmpty");
+    const detailPane = document.getElementById("detailPane");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailAuthors = document.getElementById("detailAuthors");
+    const detailLinks = document.getElementById("detailLinks");
+    const posterThumb = document.getElementById("posterThumb");
+    const figuresContent = document.getElementById("figuresContent");
+    const tablesContent = document.getElementById("tablesContent");
+    const textBlocksContent = document.getElementById("textBlocksContent");
+    const imgLightbox = document.getElementById("imgLightbox");
+    const imgLightboxImg = document.getElementById("imgLightboxImg");
+    const imgLightboxClose = document.getElementById("imgLightboxClose");
+
+    const tabs = document.querySelectorAll(".tab");
+    const tabPanels = {
+      figures: document.getElementById("tabFigures"),
+      tables: document.getElementById("tabTables"),
+      textblocks: document.getElementById("tabTextBlocks"),
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.tab;
+        tabs.forEach(t => t.classList.toggle("active", t === tab));
+        Object.entries(tabPanels).forEach(([name, el]) => {
+          el.style.display = name === target ? "block" : "none";
+        });
+      });
+    });
+
+    async function search() {
+      const q = qInput.value.trim();
+      currentKeyword = q;
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      params.set("page", "1");
+      params.set("page_size", "30");
+
+      statusText.textContent = "Searching...";
+      searchBtn.disabled = true;
+      resultsList.innerHTML = "";
+
+      try {
+        const res = await fetch("/api/posters/search?" + params.toString());
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        resultInfo.textContent = `${data.total} results`;
+        if (!data.items.length) {
+          resultsList.innerHTML = '<div class="result-item"><div class="result-title">No results</div><div class="result-snippet">Try a different keyword.</div></div>';
+          statusText.textContent = "Done";
+          return;
+        }
+
+        for (const item of data.items) {
+          const div = document.createElement("div");
+          div.className = "result-item";
+          div.innerHTML = `
+            <div class="result-title">${highlightText(item.title || "(no title)", currentKeyword)}</div>
+            <div class="result-authors">${(item.authors || []).join(", ") || "Unknown authors"}</div>
+            <div class="result-snippet">${highlightText(item.snippet || "", currentKeyword)}</div>
+          `;
+          div.addEventListener("click", () => loadDetail(item.id));
+          resultsList.appendChild(div);
+        }
+
+        statusText.textContent = "Done";
+      } catch (err) {
+        console.error(err);
+        statusText.textContent = "Error";
+        resultsList.innerHTML = '<div class="result-item"><div class="result-title">Error</div><div class="result-snippet">Failed to query /api/posters/search. Check backend console.</div></div>';
+      } finally {
+        searchBtn.disabled = false;
+      }
+    }
+
+    async function loadDetail(id) {
+      statusText.textContent = "Loading detail...";
+      try {
+        const res = await fetch(`/api/posters/${id}`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        detailEmpty.style.display = "none";
+        detailPane.style.display = "block";
+
+        detailTitle.textContent = data.title || "(no title)";
+        detailAuthors.textContent = (data.authors || []).join(", ") || "Unknown authors";
+
+        const links = [];
+        if (data.source_url) {
+          links.push(`<a href="${escapeAttr(data.source_url)}" target="_blank" rel="noreferrer">Source</a>`);
+        }
+        if (data.page_url) {
+          links.push(`<a href="${escapeAttr(data.page_url)}" target="_blank" rel="noreferrer">Page</a>`);
+        }
+        detailLinks.innerHTML = links.join("");
+
+        // poster thumbnail
+        if (data.poster_image_url) {
+          posterThumb.src = data.poster_image_url;
+          posterThumb.style.display = "block";
+          posterThumb.onclick = (e) => {
+            e.stopPropagation();
+            imgLightboxImg.src = data.poster_image_url;
+            imgLightboxImg.alt = data.title || "Poster";
+            imgLightbox.style.display = "flex";
+          };
+        } else {
+          posterThumb.style.display = "none";
+        }
+
+        // figures
+        if (data.figures && data.figures.length) {
+          figuresContent.innerHTML = "";
+          for (const f of data.figures) {
+            const d = document.createElement("div");
+            d.className = "fig-item";
+            const img = document.createElement("img");
+            img.src = f.url || "";
+            img.alt = f.path || "";
+            img.style.width = "100%";
+            img.style.display = "block";
+            img.style.borderRadius = "6px";
+            img.style.marginBottom = "4px";
+
+            // click to open lightbox
+            img.addEventListener("click", (e) => {
+              e.stopPropagation();
+              imgLightboxImg.src = f.url || "";
+              imgLightboxImg.alt = f.path || "";
+              imgLightbox.style.display = "flex";
+            });
+
+            const caption = document.createElement("div");
+            caption.textContent = (f.path || "").split("/").slice(-1)[0];
+
+            d.appendChild(img);
+            d.appendChild(caption);
+            figuresContent.appendChild(d);
+          }
+        } else {
+          figuresContent.textContent = "No figures.";
+        }
+
+        // tables - render Markdown tables into styled HTML tables
+        if (data.tables && data.tables.length) {
+          tablesContent.innerHTML = "";
+          data.tables.forEach((tb, idx) => {
+            const container = document.createElement("div");
+            container.style.marginBottom = "10px";
+
+            const caption = document.createElement("div");
+            caption.className = "table-caption";
+            caption.textContent = `Table ${idx + 1}`;
+            container.appendChild(caption);
+
+            const tableEl = document.createElement("table");
+            tableEl.className = "nice-table";
+
+            const lines = String(tb)
+              .split(/\r?\n/)
+              .map((l) => l.trim())
+              .filter((l) => l.length > 0);
+
+            if (lines.length >= 2) {
+              const headerLine = lines[0];
+              const headerCells = headerLine
+                .split("|")
+                .map((c) => c.trim())
+                .filter((c) => c.length > 0);
+
+              const thead = document.createElement("thead");
+              const trHead = document.createElement("tr");
+              headerCells.forEach((h) => {
+                const th = document.createElement("th");
+                th.textContent = h;
+                trHead.appendChild(th);
+              });
+              thead.appendChild(trHead);
+              tableEl.appendChild(thead);
+
+              const tbody = document.createElement("tbody");
+              // Data lines: skip header + separator line
+              for (let i = 2; i < lines.length; i++) {
+                const line = lines[i];
+                const cells = line
+                  .split("|")
+                  .map((c) => c.trim())
+                  .filter((c) => c.length > 0);
+                if (!cells.length) continue;
+                const tr = document.createElement("tr");
+                cells.forEach((c) => {
+                  const td = document.createElement("td");
+                  td.textContent = c;
+                  tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+              }
+              tableEl.appendChild(tbody);
+            } else {
+              // fallback: plain text
+              const pre = document.createElement("pre");
+              pre.className = "pre-text";
+              pre.textContent = tb;
+              container.appendChild(pre);
+            }
+
+            container.appendChild(tableEl);
+            tablesContent.appendChild(container);
+          });
+        } else {
+          tablesContent.textContent = "No tables.";
+        }
+
+        // text blocks
+        if (data.blocks && data.blocks.length) {
+          const lines = [];
+          data.blocks.forEach((b, idx) => {
+            const label = b.block_label || "block";
+            const content = b.block_content || "";
+            const preview = content.length > 120 ? content.slice(0, 120) + "..." : content;
+            lines.push(
+              `[${idx + 1}] ${label.toUpperCase()}\n${preview}\n`
+            );
+          });
+          const joined = lines.join("\n");
+          textBlocksContent.innerHTML = highlightText(joined, currentKeyword).replace(/\n/g, "<br>");
+        } else {
+          textBlocksContent.textContent = "No text blocks.";
+        }
+
+        statusText.textContent = "Done";
+      } catch (err) {
+        console.error(err);
+        statusText.textContent = "Error";
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/"/g, "&quot;");
+    }
+
+    function escapeRegExp(str) {
+      return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function highlightText(text, term) {
+      if (!term) return escapeHtml(text);
+      const safeTerm = escapeRegExp(term);
+      const re = new RegExp(`(${safeTerm})`, "ig");
+      return escapeHtml(text).replace(re, "<mark>$1</mark>");
+    }
+
+    searchBtn.addEventListener("click", () => search());
+    qInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") search();
+    });
+
+    // lightbox close handlers
+    imgLightboxClose.addEventListener("click", () => {
+      imgLightbox.style.display = "none";
+    });
+    imgLightbox.addEventListener("click", () => {
+      imgLightbox.style.display = "none";
+    });
+    imgLightboxImg.addEventListener("click", (e) => {
+      // prevent closing when clicking on image itself
+      e.stopPropagation();
+    });
+  </script>
+</body>
+</html>
+
+
