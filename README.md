@@ -172,6 +172,8 @@ The following ER diagram illustrates how the four tables interact inside the Pos
 
 ## Interactive Visualization Interface
 
+Before starting the web interface, make sure the PostgreSQL database has been created and populated using the ingestion script.
+
 From the project root directory, run:
 
 ```bash
