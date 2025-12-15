@@ -178,8 +178,7 @@ INFO:     Uvicorn running on http://127.0.0.1:8000 ...
 
 ### Access the Frontend in Your Browser
 Open any browser and navigate to:
-```bash
-http://127.0.0.1:8000
-```
+
+**http://127.0.0.1:8000**
 
 You should now see the full Poster Explorer interface.
