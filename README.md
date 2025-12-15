@@ -100,7 +100,18 @@ python merge_json.py
 ### Step 2: AI Data Preparation
 
 This step assumes that PDF posters have already been processed by AI to generate `result.json`, `result.md`, and cropped images.
+We tried many methods, and after considering both effectiveness and cost, we finally chose [PaddlePaddleOCR](https://huggingface.co/PaddlePaddle/PaddleOCR-VL).
+Processing a single poster may take 40-60 seconds, and the images may be split into Markdown and JSON formats. The `imgs` folder stores the segmented images recognized from the poster.
+```bash
+# The following command installs the PaddlePaddle version for CUDA 12.6. For other CUDA versions and the CPU version, please refer to https://www.paddlepaddle.org.cn/en/install/quick?docurl=/documentation/docs/en/develop/install/pip/linux-pip_en.html
+python -m pip install paddlepaddle-gpu==3.2.1 -i https://www.paddlepaddle.org.cn/packages/stable/cu126/
+python -m pip install -U "paddleocr[doc-parser]"
+# For Linux systems, run:
+python -m pip install https://paddle-whl.bj.bcebos.com/nightly/cu126/safetensors/safetensors-0.6.2.dev0-cp38-abi3-linux_x86_64.whl
+# For Windows systems, run:
+python -m pip install https://xly-devops.cdn.bcebos.com/safetensors-nightly/safetensors-0.6.2.dev0-cp38-abi3-win_amd64.whl
 
+````
 Ensure `processed_data` exists with AI-parsed results:
 
 ```
