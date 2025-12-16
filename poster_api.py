@@ -2,23 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 Simple FastAPI backend + static frontend for searching / viewing poster data.
-
-Usage:
-  1) Install deps (in project root):
-       pip install "fastapi[standard]" psycopg2-binary
-  2) Make sure PostgreSQL 'posters' DB is running and ingest_poster_data_to_db.py has been run.
-  3) Start server (in project root):
-       python poster_api.py
-  4) Open in browser:
-       http://127.0.0.1:8000
 """
 
 import os
 import json
 import urllib.parse
-import getpass
 from typing import List, Optional
-
+import getpass
 import psycopg2
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, Response
@@ -42,6 +32,8 @@ def get_db_conn():
     return psycopg2.connect(**DB_CONFIG)
 
 
+
+
 app = FastAPI(title="Poster Search API")
 
 app.add_middleware(
@@ -52,10 +44,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ------------------------------
-# Static frontend
-# ------------------------------
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(PROJECT_ROOT, "static")
@@ -81,21 +69,9 @@ def serve_static(path: str):
     return FileResponse(full_path)
 
 
-# ------------------------------
-# API: Images, Search & Detail
-# ------------------------------
-
-
 @app.get("/api/figure")
 def get_figure(path: str):
-    """
-    Serve a figure image by its original absolute path stored in DB.
-
-    For safety, we:
-      1) URL-decode the path
-      2) Resolve to absolute path
-      3) Ensure it lives under DATA_ROOT_DIR
-    """
+    """Serve a figure image."""
     decoded = urllib.parse.unquote(path)
     abs_path = os.path.abspath(decoded)
 
@@ -104,17 +80,12 @@ def get_figure(path: str):
     if not os.path.exists(abs_path):
         raise HTTPException(status_code=404, detail="Figure not found")
 
-    # Let FileResponse infer content-type from file extension
     return FileResponse(abs_path)
 
 
 @app.get("/api/poster_image")
 def get_poster_image(poster_id: str):
-    """
-    Serve the full poster image (thumbnail / preview) based on poster_id.
-
-    Looks for a PNG file named {poster_id}.png in icml+iclr_posters/posters.
-    """
+    """Serve the full poster image."""
     if not poster_id:
         raise HTTPException(status_code=400, detail="Missing poster_id")
 
@@ -124,7 +95,7 @@ def get_poster_image(poster_id: str):
     if not abs_path.startswith(os.path.abspath(POSTERS_DIR)):
         raise HTTPException(status_code=400, detail="Invalid poster_id")
     if not os.path.exists(abs_path):
-        raise HTTPException(status_code=404, detail="Poster image not found")
+        return Response(status_code=404)
 
     return FileResponse(abs_path)
 
@@ -142,17 +113,15 @@ def search_posters(
 
     if q:
         # Global keyword search on title OR authors OR cleaned text_content
-        # For better performance later you can switch this to PostgreSQL fulltext.
         conditions.append("(title ILIKE %s OR authors::text ILIKE %s OR text_content ILIKE %s)")
         like = f"%{q}%"
         params.extend([like, like, like])
 
     if author:
         # authors is stored as TEXT[]; casting to text makes search more robust
-        # Example value: "{Alice, Bob}" → we just do a substring match on that.
         conditions.append("authors::text ILIKE %s")
         params.append(f"%{author}%")
-
+    
     where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
 
     conn = get_db_conn()
@@ -200,8 +169,113 @@ def search_posters(
     }
 
 
+@app.get("/api/posters/stats")
+def get_poster_stats(
+    by: str = Query(..., description="Group by dimension: 'author_count', 'table_count', or 'figure_count'"),
+    q: Optional[str] = Query(default=None, description="Filter by keyword in title or text_content"),
+    author: Optional[str] = Query(default=None, description="Filter by Author substring"),
+):
+    """
+    Provides aggregated statistics for posters, grouped by the selected dimension,
+    optionally filtered by a search query or author.
+    """
+    valid_groups = ["author_count", "table_count", "figure_count"]
+    if by not in valid_groups:
+        raise HTTPException(status_code=400, detail=f"Invalid 'by' parameter. Must be one of: {', '.join(valid_groups)}")
+
+    conn = get_db_conn()
+    cur = conn.cursor()
+    results = []
+
+    # 1. Build the base WHERE clause for filtering (using the same logic as search)
+    conditions = []
+    params: List = []
+
+    # Note: Using pi. alias for poster_info in filter logic
+    if q:
+        conditions.append("(pi.title ILIKE %s OR pi.authors::text ILIKE %s OR pi.text_content ILIKE %s)")
+        like = f"%{q}%"
+        params.extend([like, like, like])
+
+    if author:
+        conditions.append("pi.authors::text ILIKE %s")
+        params.append(f"%{author}%")
+    
+    where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
+
+
+    try:
+        if by == "author_count":
+            # Count author_count directly, filtered by where_clause
+            sql = f"""
+                SELECT array_length(pi.authors, 1) AS author_count, COUNT(*)
+                FROM poster_info pi
+                {where_clause}
+                AND pi.authors IS NOT NULL AND array_length(pi.authors, 1) IS NOT NULL
+                GROUP BY author_count
+                ORDER BY author_count;
+            """
+            cur.execute(sql, params)
+            results = [{"dimension": str(r[0]), "count": r[1]} for r in cur.fetchall() if r[0] is not None]
+        
+        elif by == "table_count":
+            # CTE to calculate table count per filtered poster, then group the counts
+            sql = f"""
+                WITH FilteredPosters AS (
+                    SELECT pi.id, pi.poster_id FROM poster_info pi {where_clause}
+                ),
+                PosterTableCounts AS (
+                    SELECT 
+                        fp.poster_id, 
+                        COUNT(pt.id) AS table_count
+                    FROM FilteredPosters fp
+                    LEFT JOIN poster_table pt ON fp.id = pt.poster_id
+                    GROUP BY fp.poster_id
+                )
+                SELECT 
+                    ptc.table_count AS dimension, 
+                    COUNT(*) AS count
+                FROM PosterTableCounts ptc
+                GROUP BY 1
+                ORDER BY 1;
+            """
+            cur.execute(sql, params)
+            results = [{"dimension": str(r[0]), "count": r[1]} for r in cur.fetchall()]
+
+        elif by == "figure_count":
+            # CTE to calculate figure count per filtered poster, then group the counts
+            sql = f"""
+                WITH FilteredPosters AS (
+                    SELECT pi.id, pi.poster_id FROM poster_info pi {where_clause}
+                ),
+                PosterFigureCounts AS (
+                    SELECT 
+                        fp.poster_id, 
+                        COUNT(pf.id) AS figure_count
+                    FROM FilteredPosters fp
+                    LEFT JOIN poster_figure pf ON fp.id = pf.poster_id
+                    GROUP BY fp.poster_id
+                )
+                SELECT 
+                    pfc.figure_count AS dimension, 
+                    COUNT(*) AS count
+                FROM PosterFigureCounts pfc
+                GROUP BY 1
+                ORDER BY 1;
+            """
+            cur.execute(sql, params)
+            results = [{"dimension": str(r[0]), "count": r[1]} for r in cur.fetchall()]
+
+    finally:
+        cur.close()
+        conn.close()
+
+    return {"stats": results, "group_by": by, "q": q, "author": author}
+
+
 @app.get("/api/posters/{poster_db_id}")
 def get_poster_detail(poster_db_id: int):
+    # This function remains unchanged
     conn = get_db_conn()
     cur = conn.cursor()
     try:
@@ -316,9 +390,6 @@ def get_poster_detail(poster_db_id: int):
 
 
 if __name__ == "__main__":
-    # Use FastAPI's built-in runner (via fastapi[standard]) to simplify usage.
     import uvicorn
 
     uvicorn.run("poster_api:app", host="127.0.0.1", port=8000, reload=False)
-
-
