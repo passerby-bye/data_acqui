@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Poster Search</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -369,6 +370,18 @@
       </div>
     </aside>
     <section class="content">
+      <div id="statsPane" class="card" style="margin-bottom: 16px;">
+        <h3>📊 Poster Statistics</h3>
+        <div class="tabs" id="statsTabs">
+          <div class="tab active" data-stat-group="author_count">By Author Count</div>
+          <div class="tab" data-stat-group="table_count">By Table Count</div>
+          <div class="tab" data-stat-group="figure_count">By Figure Count</div>
+        </div>
+        <div style="height: 300px; display: flex; justify-content: center; align-items: center;">
+          <canvas id="statChart" style="width: 100%; height: 100%;"></canvas>
+          <div id="chartPlaceholder" style="font-size: 14px;">Select a tab to load a chart, or click Search to update stats for the results.</div>
+        </div>
+      </div>
       <div id="detailEmpty" class="muted">
         Select a poster from the left to see details here.
       </div>
@@ -387,7 +400,7 @@
             <div class="thumb-caption small muted" id="posterThumbCaption">Click to view fullscreen</div>
           </div>
           <div class="card">
-            <div class="tabs">
+            <div class="tabs" id="detailTabs">
               <div class="tab active" data-tab="figures">Figures</div>
               <div class="tab" data-tab="tables">Tables</div>
               <div class="tab" data-tab="textblocks">Text Blocks</div>
@@ -412,13 +425,14 @@
       </div>
     </section>
   </main>
-  <!-- Image lightbox -->
   <div id="imgLightbox" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:50; align-items:center; justify-content:center;">
     <div style="position:absolute; top:16px; right:20px; cursor:pointer; color:#e5e7eb; font-size:24px;" id="imgLightboxClose">&times;</div>
     <img id="imgLightboxImg" src="" alt="" style="max-width:90vw; max-height:90vh; border-radius:10px; box-shadow:0 20px 45px rgba(0,0,0,0.8); border:1px solid #4b5563;" />
   </div>
   <script>
     let currentKeyword = "";
+    let currentChart = null; 
+
     const statusText = document.getElementById("statusText");
     const qInput = document.getElementById("qInput");
     const searchBtn = document.getElementById("searchBtn");
@@ -438,34 +452,148 @@
     const imgLightboxImg = document.getElementById("imgLightboxImg");
     const imgLightboxClose = document.getElementById("imgLightboxClose");
 
-    const tabs = document.querySelectorAll(".tab");
+    const detailTabs = document.querySelectorAll("#detailTabs .tab");
     const tabPanels = {
       figures: document.getElementById("tabFigures"),
       tables: document.getElementById("tabTables"),
       textblocks: document.getElementById("tabTextBlocks"),
     };
 
-    tabs.forEach(tab => {
+    const statsTabs = document.getElementById("statsTabs");      
+    const statChartCanvas = document.getElementById("statChart"); 
+    const chartPlaceholder = document.getElementById("chartPlaceholder"); 
+    let currentStatsGroup = 'author_count'; // Track active stats group
+
+    // Detail Tabs Handler
+    detailTabs.forEach(tab => {
       tab.addEventListener("click", () => {
         const target = tab.dataset.tab;
-        tabs.forEach(t => t.classList.toggle("active", t === tab));
+        detailTabs.forEach(t => t.classList.toggle("active", t === tab));
         Object.entries(tabPanels).forEach(([name, el]) => {
           el.style.display = name === target ? "block" : "none";
         });
       });
     });
 
+    // Stats Tabs Handler 
+    statsTabs.addEventListener("click", (e) => {
+        if (e.target.classList.contains("tab")) {
+            // Toggle active class for tabs
+            statsTabs.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            e.target.classList.add("active");
+            
+            currentStatsGroup = e.target.dataset.statGroup;
+            // When tab is clicked, reload stats using the current search query
+            loadStats(currentStatsGroup, qInput.value.trim());
+        }
+    });
+
+    // Load Statistics Function - now accepts search query
+    async function loadStats(groupBy, query) {
+        chartPlaceholder.style.display = "flex";
+        statChartCanvas.style.display = "none";
+        statusText.textContent = `Loading stats by ${groupBy}...`;
+
+        // Clear previous chart
+        if (currentChart) {
+            currentChart.destroy();
+        }
+        
+        const params = new URLSearchParams();
+        params.set("by", groupBy);
+        if (query) {
+             // We only pass the main keyword search here, simplifying the front-end for now
+            params.set("q", query);
+        }
+
+        try {
+            const res = await fetch(`/api/posters/stats?` + params.toString());
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const data = await res.json();
+            
+            if (!data.stats || data.stats.length === 0) {
+                chartPlaceholder.textContent = `No data available for ${groupBy} for the current filters.`;
+                statusText.textContent = "Done";
+                return;
+            }
+
+            // Prepare Chart.js data
+            const labels = data.stats.map(item => item.dimension);
+            const counts = data.stats.map(item => item.count);
+            const titleMap = {
+                'author_count': 'Author Count',
+                'table_count': 'Table Count',
+                'figure_count': 'Figure Count',
+            };
+
+            // Render Chart
+            currentChart = new Chart(statChartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Posters Count by ${titleMap[groupBy]}`,
+                        data: counts,
+                        backgroundColor: 'rgba(79, 70, 229, 0.7)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: `Poster Count Grouped by ${titleMap[groupBy]}`,
+                            color: '#e5e7eb',
+                            font: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                        },
+                        x: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                        }
+                    }
+                }
+            });
+
+            chartPlaceholder.style.display = "none";
+            statChartCanvas.style.display = "block";
+            statusText.textContent = "Done";
+
+        } catch (err) {
+            console.error(err);
+            statusText.textContent = "Stats Error";
+            chartPlaceholder.textContent = "Failed to load statistics: " + err.message;
+        }
+    }
+    
+
     async function search() {
       const q = qInput.value.trim();
       currentKeyword = q;
+      
       const params = new URLSearchParams();
       if (q) params.set("q", q);
+      
       params.set("page", "1");
       params.set("page_size", "30");
 
       statusText.textContent = "Searching...";
       searchBtn.disabled = true;
       resultsList.innerHTML = "";
+
+      // Also reload stats based on the new search query
+      loadStats(currentStatsGroup, q); 
 
       try {
         const res = await fetch("/api/posters/search?" + params.toString());
@@ -692,6 +820,9 @@
       if (e.key === "Enter") search();
     });
 
+    // Initial load of default stats
+    loadStats(currentStatsGroup, qInput.value.trim());
+
     // lightbox close handlers
     imgLightboxClose.addEventListener("click", () => {
       imgLightbox.style.display = "none";
@@ -706,5 +837,3 @@
   </script>
 </body>
 </html>
-
-
