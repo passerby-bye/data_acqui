@@ -2,6 +2,7 @@
 
 This project implements a data pipeline to scrape metadata from ICLR and ICML virtual conference posters, structure the AI-parsed content, and load all resulting data into a PostgreSQL database.
 Beyond poster generation, our project enables intelligent semantic retrieval for precise searching of specific figures and scientific conclusions within posters.
+
 ---
 
 ## Table of Contents
